@@ -5,18 +5,28 @@ import { Component, h, render } from 'preact';
 
 class Sonogram extends Component {
   componentDidMount() {
-    ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
-      this.setState({ currentTime, duration });
-    });
+    // ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
+    //   this.setState({ currentTime, duration });
+    // });
     ipcRenderer.on('Main:playlistupdate', (event, { playlist = [] }) => {
       this.setState({ playlist });
     });
 
     this.setState(remote.getGlobal('state'));
   }
-  render(children, { playlist = [], currentTime = 0, duration = 0 }) {
-    const list = playlist.map(x => <div onclick={() => play(x)}>{x.artist} - {x.title}</div>);
-    return <div>{list}{currentTime}/{duration}</div>;
+  render(children, { playlist = [] /*, currentTime = 0, duration = 0 */}) {
+    const list = playlist.map(x =>
+      <article onclick={() => play(x)}>
+        <span>{x.artist}</span>
+        <span>{x.title}</span>
+      </article>
+    );
+    return (
+      <div>
+        {list}
+        {/* {currentTime}/{duration} */}
+      </div>
+    );
   }
 }
 
