@@ -1,0 +1,22 @@
+{
+  "name": "hush",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "electron -r babel-register main.js"
+  },
+  "devDependencies": {
+    "babel-eslint": "7.2.3",
+    "babel-plugin-transform-object-rest-spread": "6.23.0",
+    "babel-plugin-transform-react-jsx": "6.24.1",
+    "babel-preset-es2015": "6.24.1",
+    "babel-register": "6.24.1",
+    "electron": "1.6.11",
+    "eslint": "4.2.0",
+    "eslint-plugin-react": "7.1.0"
+  },
+  "dependencies": {
+    "glob": "7.1.2",
+    "jsmediatags": "3.6.1",
+    "preact": "8.2.1"
+  }
+}
