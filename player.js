@@ -23,34 +23,31 @@ ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].sr
   switch (command) {
     case 'next': {
       const next = playlist[playlist.findIndex(x => decodeURI(audio.src).includes(x.src)) + 1] || playlist[0];
+      audio.pause();
       audio.currentTime = 0;
       audio.src = next.src;
       playing = Promise.resolve(playing)
-        .then(() => {
-          playing = audio.play();
-          return;
-        });
+        .then(() => audio.play())
+        .catch(() => Promise.resolve());
       break;
     }
     case 'previous': {
       const previous = playlist[playlist.findIndex(x => decodeURI(audio.src).includes(x.src)) - 1] || playlist[playlist.length - 1];
+      audio.pause();
       audio.currentTime = 0;
       audio.src = previous.src;
       playing = Promise.resolve(playing)
-        .then(() => {
-          playing = audio.play();
-          return;
-        });
+        .then(() => audio.play())
+        .catch(() => Promise.resolve());
       break;
     }
     case 'play':
+      audio.pause();
       audio.src = src;
       audio.currentTime = 0;
-      playing = Promise.resolve(playing)
-        .then(() => {
-          playing = audio.play();
-          return;
-        });
+      playing = Promise.resolve()
+        .then(() => audio.play())
+        .catch(() => Promise.resolve());
       break;
     case 'pause':
       if (!audio.src) {
@@ -58,10 +55,8 @@ ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].sr
       }
 
       playing = Promise.resolve(playing)
-        .then(() => {
-          playing = audio.paused ? audio.play() : audio.pause();
-          return playing;
-        });
+        .then(() => audio.paused ? audio.play() : audio.pause())
+        .catch(() => Promise.resolve());
       break;
   }
 });

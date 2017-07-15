@@ -4,6 +4,7 @@ import {
   globalShortcut,
   ipcMain
 } from 'electron';
+import fs from 'fs';
 import path from 'path';
 import url from 'url';
 import jsmediatags from 'jsmediatags';
@@ -11,8 +12,12 @@ import jsmediatags from 'jsmediatags';
 let gui;
 let player;
 
+const lastPlaylist = fs.existsSync(path.join(app.getPath('userData'), 'last-playlist.json')) ?
+  require(path.join(app.getPath('userData'), 'last-playlist.json')) :
+  [];
+
 global.state = {
-  playlist: []
+  playlist: lastPlaylist
 };
 
 app.on('ready', () => {
@@ -46,16 +51,20 @@ ipcMain.on('Player:command', (event, params) => {
 });
 
 ipcMain.on('Main:playlistupdate', (event, { files = [] }) => {
+  let i = 0;
   const promises = files.map(file => {
     return new Promise((res, rej) => {
       jsmediatags.read(file.src, {
         onSuccess: e => {
           const { artist, title, album } = e.tags;
+          console.log(i++, files.length);
           res({
             album,
             artist,
             title,
-            src: file.src
+
+            // Encode question mark in filename/filepath
+            src: file.src.split(path.sep).map(encodeURIComponent).join(path.sep)
           });
         },
         onError: rej
@@ -66,6 +75,10 @@ ipcMain.on('Main:playlistupdate', (event, { files = [] }) => {
   Promise.all(promises)
     .then(songs => {
       global.state.playlist = songs;
+
+      fs.writeFile(path.join(app.getPath('userData'), 'last-playlist.json'), JSON.stringify(songs), err => {
+        if (err) throw err;
+      });
 
       if (gui) {
         gui.webContents.send('Main:playlistupdate', global.state)
@@ -101,7 +114,7 @@ function createPlayer() {
     slashes: true
   }));
 
-  // player.webContents.openDevTools();
+  player.webContents.openDevTools();
 
   player.on('closed', () => gui = null);
 }
