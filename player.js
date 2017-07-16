@@ -12,6 +12,8 @@ audio.ontimeupdate = function() {
   });
 };
 
+audio.onended = playNext;
+
 ipcRenderer.on('Main:playlistupdate', (event, { playlist: newPlaylist = [] }) => {
   playlist = newPlaylist
 });
@@ -22,17 +24,11 @@ let playing;
 ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].src }) {
   switch (command) {
     case 'next': {
-      const next = playlist[playlist.findIndex(x => decodeURI(audio.src).includes(x.src)) + 1] || playlist[0];
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = next.src;
-      playing = Promise.resolve(playing)
-        .then(() => audio.play())
-        .catch(() => Promise.resolve());
+      playNext();
       break;
     }
     case 'previous': {
-      const previous = playlist[playlist.findIndex(x => decodeURI(audio.src).includes(x.src)) - 1] || playlist[playlist.length - 1];
+      const previous = playlist[playlist.findIndex(x => audio.src.includes(x.src)) - 1] || playlist[playlist.length - 1];
       audio.pause();
       audio.currentTime = 0;
       audio.src = previous.src;
@@ -60,3 +56,13 @@ ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].sr
       break;
   }
 });
+
+function playNext() {
+  const next = playlist[playlist.findIndex(x => audio.src.includes(x.src)) + 1] || playlist[0];
+  audio.pause();
+  audio.currentTime = 0;
+  audio.src = next.src;
+  playing = Promise.resolve(playing)
+    .then(() => audio.play())
+    .catch(() => Promise.resolve());
+}
