@@ -66,7 +66,8 @@ window.addEventListener('drop', event => {
 
 function SongItem({ song, selected, click, dblclick }) {
   const style = song.src === selected.src ? {
-    background: 'red'
+    'background-color': '#E1C401',
+    color: '#000'
   } : {};
 
   return (
