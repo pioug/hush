@@ -1,6 +1,7 @@
 import fs from 'fs';
 import glob from 'glob';
 import { ipcRenderer, remote } from 'electron';
+
 import { Component, h, render } from 'preact';
 
 class Sonogram extends Component {
@@ -9,18 +10,25 @@ class Sonogram extends Component {
     //   this.setState({ currentTime, duration });
     // });
     ipcRenderer.on('Main:playlistupdate', (event, { playlist = [] }) => {
+      playlist = JSON.parse(JSON.stringify(playlist));
       this.setState({ playlist });
     });
 
-    this.setState(remote.getGlobal('state'));
+    const state = JSON.parse(JSON.stringify(remote.getGlobal('state')));
+    this.setState(state);
   }
-  render(children, { playlist = [] /*, currentTime = 0, duration = 0 */}) {
+  select(x) {
+    this.setState({ selected: x });
+  }
+  render(children, { playlist = [], selected = {} }) {
     const list = playlist.map(x =>
-      <article onclick={() => play(x)}>
-        <span>{x.artist}</span>
-        <span>{x.title}</span>
-      </article>
+      <SongItem
+        click={() => this.select(x)}
+        dblclick={() => play(x)}
+        song={x}
+        selected={selected}/>
     );
+
     return (
       <div>
         {list}
@@ -31,13 +39,6 @@ class Sonogram extends Component {
 }
 
 render(<Sonogram />, document.body);
-
-function play({ ...x }) {
-  ipcRenderer.send('Player:command', {
-    command: 'play',
-    ...x
-  });
-}
 
 window.addEventListener('dragover', event => {
   event.preventDefault();
@@ -62,3 +63,26 @@ window.addEventListener('drop', event => {
     files
   });
 });
+
+function SongItem({ song, selected, click, dblclick }) {
+  const style = song.src === selected.src ? {
+    background: 'red'
+  } : {};
+
+  return (
+    <article
+      onclick={click}
+      ondblclick={dblclick}
+      style={style}>
+      <span>{song.artist}</span>
+      <span>{song.title}</span>
+    </article>
+  );
+}
+
+function play({ ...x }) {
+  ipcRenderer.send('Player:command', {
+    command: 'play',
+    ...x
+  });
+}

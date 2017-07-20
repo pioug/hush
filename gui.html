@@ -12,8 +12,13 @@
       }
 
       article {
+        backface-visibility: hidden;
         display: flex;
         padding: 2px 8px;
+      }
+
+      article:nth-child(even) {
+        background-color: hsla(240, 5%, 13%, 1);
       }
 
       article:nth-child(odd) {
