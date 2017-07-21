@@ -5,6 +5,16 @@ import { ipcRenderer, remote } from 'electron';
 import { Component, h, render } from 'preact';
 
 class Sonogram extends Component {
+  state = JSON.parse(JSON.stringify(remote.getGlobal('state')))
+  clickSongItem = x => {
+    this.setState({ selected: x })
+  }
+  play = ({ ...x }) => {
+    ipcRenderer.send('Player:command', {
+      command: 'play',
+      ...x
+    });
+  }
   componentDidMount() {
     ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
       this.setState({ currentTime, duration });
@@ -19,17 +29,12 @@ class Sonogram extends Component {
       this.setState({ playing });
     });
 
-    const state = JSON.parse(JSON.stringify(remote.getGlobal('state')));
-    this.setState(state);
-  }
-  select(x) {
-    this.setState({ selected: x });
   }
   render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
     const list = playlist.map(x =>
       <SongItem
-        click={() => this.select(x)}
-        dblclick={() => play(x)}
+        click={this.clickSongItem}
+        dblclick={this.play}
         song={x}
         playing={playing}
         selected={selected}/>
@@ -48,7 +53,6 @@ class Sonogram extends Component {
 }
 
 function Player({ playing, currentTime, duration }) {
-  console.log(playing);
   return (
     <div>
       <div>{playing.artist} - {playing.title} ({playing.album})</div>
@@ -107,29 +111,30 @@ window.addEventListener('drop', event => {
   });
 });
 
-function SongItem({ playing, song, selected, click, dblclick }) {
-  const style = {
-    'background-color': song.src === selected.src ? '#292b3d' : null,
-    color: song.src === playing.src ?
-      '#ff0066' :
-      'inherit',
-  };
+class SongItem extends Component {
+  handleClick = () => {
+    this.props.click(this.props.song);
+  }
+  handleDblclick = () => {
+    this.props.dblclick(this.props.song);
+  }
+  render({ playing, song, selected }) {
+    const style = {
+      'background-color': song.src === selected.src ? '#292b3d' : null,
+      color: song.src === playing.src ?
+        '#ff0066' :
+        'inherit',
+    };
 
-  return (
-    <article
-      onclick={click}
-      ondblclick={dblclick}
-      style={style}>
-      <span>{song.artist}</span>
-      <span>{song.title}</span>
-      <span>{song.album}</span>
-    </article>
-  );
-}
-
-function play({ ...x }) {
-  ipcRenderer.send('Player:command', {
-    command: 'play',
-    ...x
-  });
+    return (
+      <article
+        onclick={this.handleClick}
+        ondblclick={this.handleDblclick}
+        style={style}>
+        <span>{song.artist}</span>
+        <span>{song.title}</span>
+        <span>{song.album}</span>
+      </article>
+    );
+  }
 }
