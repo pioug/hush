@@ -7,12 +7,14 @@
         background-color: hsla(240, 5%, 13%, 1);
         color: #fafafa;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;;
-        font-size: 14px;
+        font-size: 12px;
         margin: 0;
+        user-select: none;
       }
 
       article {
         backface-visibility: hidden;
+        cursor: default;
         display: flex;
         padding: 2px 8px;
       }
@@ -23,6 +25,9 @@
 
       span {
         flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     </style>
   </body>

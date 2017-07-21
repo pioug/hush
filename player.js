@@ -12,6 +12,12 @@ audio.ontimeupdate = function() {
   });
 };
 
+audio.onplay = function() {
+  ipcRenderer.send('Player:play', {
+    src: this.src
+  });
+}
+
 audio.onended = playNext;
 
 ipcRenderer.on('Main:playlistupdate', (event, { playlist: newPlaylist = [] }) => {

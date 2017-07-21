@@ -14,18 +14,24 @@ class Sonogram extends Component {
       this.setState({ playlist });
     });
 
+    ipcRenderer.on('Player:play', (event, { src = '' }) => {
+      const playing = this.state.playlist.find(song => src.includes(song.src));
+      this.setState({ playing });
+    });
+
     const state = JSON.parse(JSON.stringify(remote.getGlobal('state')));
     this.setState(state);
   }
   select(x) {
     this.setState({ selected: x });
   }
-  render(children, { playlist = [], selected = {} }) {
+  render(children, { playlist = [], selected = {}, playing = {} }) {
     const list = playlist.map(x =>
       <SongItem
         click={() => this.select(x)}
         dblclick={() => play(x)}
         song={x}
+        playing={playing}
         selected={selected}/>
     );
 
@@ -64,11 +70,13 @@ window.addEventListener('drop', event => {
   });
 });
 
-function SongItem({ song, selected, click, dblclick }) {
-  const style = song.src === selected.src ? {
-    'background-color': '#E1C401',
-    color: '#000'
-  } : {};
+function SongItem({ playing, song, selected, click, dblclick }) {
+  const style = {
+    'background-color': song.src === selected.src ? '#292b3d' : null,
+    color: song.src === playing.src ?
+      '#ff0066' :
+      'inherit',
+  };
 
   return (
     <article
@@ -77,6 +85,7 @@ function SongItem({ song, selected, click, dblclick }) {
       style={style}>
       <span>{song.artist}</span>
       <span>{song.title}</span>
+      <span>{song.album}</span>
     </article>
   );
 }

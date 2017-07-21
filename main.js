@@ -44,6 +44,12 @@ ipcMain.on('Player:timeupdate', (event, params) => {
   }
 });
 
+ipcMain.on('Player:play', (event, params) => {
+  if (gui) {
+    gui.webContents.send('Player:play', params)
+  }
+});
+
 ipcMain.on('Player:command', (event, params) => {
   if (player) {
     player.webContents.send('Player:command', params)
