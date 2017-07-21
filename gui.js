@@ -6,9 +6,9 @@ import { Component, h, render } from 'preact';
 
 class Sonogram extends Component {
   componentDidMount() {
-    // ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
-    //   this.setState({ currentTime, duration });
-    // });
+    ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
+      this.setState({ currentTime, duration });
+    });
     ipcRenderer.on('Main:playlistupdate', (event, { playlist = [] }) => {
       playlist = JSON.parse(JSON.stringify(playlist));
       this.setState({ playlist });
@@ -25,7 +25,7 @@ class Sonogram extends Component {
   select(x) {
     this.setState({ selected: x });
   }
-  render(children, { playlist = [], selected = {}, playing = {} }) {
+  render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
     const list = playlist.map(x =>
       <SongItem
         click={() => this.select(x)}
@@ -38,10 +38,47 @@ class Sonogram extends Component {
     return (
       <div>
         {list}
-        {/* {currentTime}/{duration} */}
+        <Player
+          playing={playing}
+          currentTime={currentTime}
+          duration={duration} />
       </div>
     );
   }
+}
+
+function Player({ playing, currentTime, duration }) {
+  console.log(playing);
+  return (
+    <div>
+      <div>{playing.artist} - {playing.title} ({playing.album})</div>
+      <div>{displayDuration(currentTime)}/{displayDuration(duration)}</div>
+    </div>
+  );
+}
+
+function displayDuration(inputSeconds) {
+  var isPositive = inputSeconds >= 0,
+    seconds,
+    minutes,
+    display;
+
+  inputSeconds = Math.abs(inputSeconds);
+  seconds = Math.floor(inputSeconds % 60);
+  minutes = Math.floor(inputSeconds / 60);
+
+  if (seconds === 60) {
+    minutes++;
+    seconds = 0;
+  }
+
+  display = `${minutes}:${to2(seconds)}`;
+  display = isPositive ? display : `-${display}`;
+  return display;
+}
+
+function to2(val) {
+  return val < 10 ? `0${val}` : val;
 }
 
 render(<Sonogram />, document.body);
