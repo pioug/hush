@@ -4,6 +4,34 @@ import { ipcRenderer, remote } from 'electron';
 
 import { Component, h, render } from 'preact';
 
+class SongItem extends Component {
+  handleClick = () => {
+    this.props.click(this.props.song);
+  }
+  handleDblclick = () => {
+    this.props.dblclick(this.props.song);
+  }
+  render({ playing, song, selected }) {
+    const style = {
+      'background-color': song.src === selected.src ? '#292b3d' : null,
+      color: song.src === playing.src ?
+        '#ff0066' :
+        'inherit',
+    };
+
+    return (
+      <article
+        onclick={this.handleClick}
+        ondblclick={this.handleDblclick}
+        style={style}>
+        <span>{song.artist}</span>
+        <span>{song.title}</span>
+        <span>{song.album}</span>
+      </article>
+    );
+  }
+}
+
 class Sonogram extends Component {
   state = JSON.parse(JSON.stringify(remote.getGlobal('state')))
   clickSongItem = x => {
@@ -28,7 +56,6 @@ class Sonogram extends Component {
       const playing = this.state.playlist.find(song => src.includes(song.src));
       this.setState({ playing });
     });
-
   }
   render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
     const list = playlist.map(x =>
@@ -110,31 +137,3 @@ window.addEventListener('drop', event => {
     files
   });
 });
-
-class SongItem extends Component {
-  handleClick = () => {
-    this.props.click(this.props.song);
-  }
-  handleDblclick = () => {
-    this.props.dblclick(this.props.song);
-  }
-  render({ playing, song, selected }) {
-    const style = {
-      'background-color': song.src === selected.src ? '#292b3d' : null,
-      color: song.src === playing.src ?
-        '#ff0066' :
-        'inherit',
-    };
-
-    return (
-      <article
-        onclick={this.handleClick}
-        ondblclick={this.handleDblclick}
-        style={style}>
-        <span>{song.artist}</span>
-        <span>{song.title}</span>
-        <span>{song.album}</span>
-      </article>
-    );
-  }
-}
