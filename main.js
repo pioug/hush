@@ -58,13 +58,15 @@ ipcMain.on('Player:command', (event, params) => {
 
 ipcMain.on('Main:playlistupdate', (event, { files = [] }) => {
   let i = 0;
-  const promises = files.map(file => {
-    return new Promise((res, rej) => {
+  let songs = [];
+
+  const promise = files.reduce((acc, file) => {
+    return acc.then(() => new Promise((res, rej) => {
       jsmediatags.read(file.src, {
         onSuccess: e => {
           const { artist, title, album } = e.tags;
           console.log(i++, files.length);
-          res({
+          songs.push({
             album,
             artist,
             title,
@@ -72,14 +74,15 @@ ipcMain.on('Main:playlistupdate', (event, { files = [] }) => {
             // Encode question mark in filename/filepath
             src: file.src.split(path.sep).map(encodeURIComponent).join(path.sep)
           });
+          res(songs);
         },
         onError: rej
       })
-    });
-  });
+    }));
+  }, Promise.resolve(songs));
 
-  Promise.all(promises)
-    .then(songs => {
+  promise
+    .then(() => {
       global.state.playlist = songs;
 
       fs.writeFile(path.join(app.getPath('userData'), 'last-playlist.json'), JSON.stringify(songs), err => {

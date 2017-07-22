@@ -1,5 +1,6 @@
 import fs from 'fs';
 import glob from 'glob';
+import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 
 import { Component, h, render } from 'preact';
@@ -124,16 +125,19 @@ window.addEventListener('drop', event => {
   event.preventDefault();
   event.stopPropagation();
 
-  const files = Array.from(event.dataTransfer.files).reduce((res, x) => {
-    const stats = fs.statSync(x.path);
-    if (stats.isDirectory()) {
-      return [...res, ...glob.sync(x.path + '/**/*.{mp3,m4a,flac,aac}').map(x => ({ src: x }))];
-    } else {
-      return [...res, { src: x.path }];
-    }
-  }, []);
+  const files = Array.from(event.dataTransfer.files)
+    .reduce((res, x) => {
+      const stats = fs.statSync(x.path);
+      if (stats.isDirectory()) {
+        return [...res, ...glob.sync(x.path + '/**/*.{mp3,m4a,flac,aac}').map(x => ({ src: x }))];
+      } else {
+        if (['.mp3', '.m4a', '.flac', '.aac'].includes(path.extname(x.path))) {
+          return [...res, { src: x.path }];
+        }
 
-  ipcRenderer.send('Main:playlistupdate', {
-    files
-  });
+        return res;
+      }
+    }, []);
+
+  ipcRenderer.send('Main:playlistupdate', { files });
 });
