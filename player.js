@@ -27,7 +27,7 @@ ipcRenderer.on('Main:playlistupdate', (event, { playlist: newPlaylist = [] }) =>
 let playlist = remote.getGlobal('state').playlist;
 let playing;
 
-ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].src }) {
+ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].src, currentTime = 0 }) {
   switch (command) {
     case 'next': {
       playNext();
@@ -59,6 +59,9 @@ ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].sr
       playing = Promise.resolve(playing)
         .then(() => audio.paused ? audio.play() : audio.pause())
         .catch(() => Promise.resolve());
+      break;
+    case 'currentTime':
+      audio.currentTime = currentTime;
       break;
   }
 });

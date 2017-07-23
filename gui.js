@@ -6,13 +6,27 @@ import { ipcRenderer, remote } from 'electron';
 import { Component, h, render } from 'preact';
 
 class Player extends Component {
+  moveProgressbar = e => {
+    const deleter = () => {
+      window.removeEventListener('mousemove', setter);
+      window.removeEventListener('mouseup', deleter);
+    };
+
+    const setter = e => {
+      this.props.setCurrentTime(e.pageX / window.innerWidth);
+    };
+
+    setter(e);
+    window.addEventListener('mousemove', setter);
+    window.addEventListener('mouseup', deleter);
+  }
   render({ playing, currentTime = 0, duration = 0 }) {
     const style = {
       width: currentTime / duration * 100 + '%'
     };
     return (
       <aside>
-        <div class="player-progress">
+        <div class="player-progress" onmousedown={this.moveProgressbar}>
           <div class="player-progress-bar" style={style}></div>
         </div>
         <div class="player-infos">
@@ -55,7 +69,7 @@ class SongItem extends Component {
 class Sonogram extends Component {
   state = (() => {
     const mainState = JSON.parse(JSON.stringify(remote.getGlobal('state')));
-    const { playing = {}, playlist = [] } = mainState;
+    const { playing = { src: '' }, playlist = [] } = mainState;
     return {
       playing: playlist.find(song => playing.src.includes(song.src)),
       playlist
@@ -68,6 +82,12 @@ class Sonogram extends Component {
     ipcRenderer.send('Player:command', {
       command: 'play',
       ...x
+    });
+  }
+  setCurrentTime = (ratio) => {
+    ipcRenderer.send('Player:command', {
+      command: 'currentTime',
+      currentTime: this.state.duration * ratio
     });
   }
   componentDidMount() {
@@ -98,6 +118,7 @@ class Sonogram extends Component {
       <div>
         <main>{list}</main>
         <Player
+          setCurrentTime={this.setCurrentTime}
           playing={playing}
           currentTime={currentTime}
           duration={duration} />
