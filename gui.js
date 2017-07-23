@@ -5,6 +5,25 @@ import { ipcRenderer, remote } from 'electron';
 
 import { Component, h, render } from 'preact';
 
+class Player extends Component {
+  render({ playing, currentTime = 0, duration = 0 }) {
+    const style = {
+      width: currentTime / duration * 100 + '%'
+    };
+    return (
+      <aside>
+        <div class="player-progress">
+          <div class="player-progress-bar" style={style}></div>
+        </div>
+        <div class="player-infos">
+          <div>{playing.artist} - {playing.title}</div>
+          <div>{displayDuration(currentTime)} / {displayDuration(duration)}</div>
+        </div>
+      </aside>
+    );
+  }
+}
+
 class SongItem extends Component {
   handleClick = () => {
     this.props.click(this.props.song);
@@ -70,7 +89,7 @@ class Sonogram extends Component {
 
     return (
       <div>
-        {list}
+        <main>{list}</main>
         <Player
           playing={playing}
           currentTime={currentTime}
@@ -78,15 +97,6 @@ class Sonogram extends Component {
       </div>
     );
   }
-}
-
-function Player({ playing, currentTime, duration }) {
-  return (
-    <div>
-      <div>{playing.artist} - {playing.title} ({playing.album})</div>
-      <div>{displayDuration(currentTime)}/{displayDuration(duration)}</div>
-    </div>
-  );
 }
 
 function displayDuration(inputSeconds) {
