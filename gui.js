@@ -53,7 +53,14 @@ class SongItem extends Component {
 }
 
 class Sonogram extends Component {
-  state = JSON.parse(JSON.stringify(remote.getGlobal('state')))
+  state = (() => {
+    const mainState = JSON.parse(JSON.stringify(remote.getGlobal('state')));
+    const { playing = {}, playlist = [] } = mainState;
+    return {
+      playing: playlist.find(song => playing.src.includes(song.src)),
+      playlist
+    };
+  })()
   clickSongItem = x => {
     this.setState({ selected: x })
   }

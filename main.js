@@ -48,6 +48,8 @@ ipcMain.on('Player:play', (event, params) => {
   if (gui) {
     gui.webContents.send('Player:play', params)
   }
+
+  global.state.playing = params;
 });
 
 ipcMain.on('Player:command', (event, params) => {
