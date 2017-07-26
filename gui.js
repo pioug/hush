@@ -115,14 +115,14 @@ class Sonogram extends Component {
     );
 
     return (
-      <div>
-        <main>{list}</main>
+      <main>
+        <section>{list}</section>
         <Player
           setCurrentTime={this.setCurrentTime}
           playing={playing}
           currentTime={currentTime}
           duration={duration} />
-      </div>
+      </main>
     );
   }
 }
