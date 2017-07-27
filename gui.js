@@ -39,8 +39,8 @@ class Player extends Component {
 }
 
 class SongItem extends Component {
-  handleClick = () => {
-    this.props.click(this.props.song);
+  handleMousedown = () => {
+    this.props.mousedown(this.props.song);
   }
   handleDblclick = () => {
     this.props.dblclick(this.props.song);
@@ -55,7 +55,7 @@ class SongItem extends Component {
 
     return (
       <article
-        onclick={this.handleClick}
+        onmousedown={this.handleMousedown}
         ondblclick={this.handleDblclick}
         style={style}>
         <span>{song.artist}</span>
@@ -75,7 +75,7 @@ class Sonogram extends Component {
       playlist
     };
   })()
-  clickSongItem = x => {
+  mousedownSongItem = x => {
     this.setState({ selected: x })
   }
   play = ({ ...x }) => {
@@ -107,7 +107,7 @@ class Sonogram extends Component {
   render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
     const list = playlist.map(x =>
       <SongItem
-        click={this.clickSongItem}
+        mousedown={this.mousedownSongItem}
         dblclick={this.play}
         song={x}
         playing={playing}
