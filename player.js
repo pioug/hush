@@ -1,5 +1,9 @@
 import { ipcRenderer, remote } from 'electron';
 
+const playback = {
+  random: true
+};
+
 const audio = new Audio();
 const audioCtx = new AudioContext();
 const source = audioCtx.createMediaElementSource(audio);
@@ -34,7 +38,9 @@ ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].sr
       break;
     }
     case 'previous': {
-      const previous = playlist[playlist.findIndex(x => audio.src.includes(x.src)) - 1] || playlist[playlist.length - 1];
+      const previous = playback.random ?
+        playlist[Math.floor(Math.random() * playlist.length)] :
+        playlist[playlist.findIndex(x => audio.src.includes(x.src)) - 1] || playlist[playlist.length - 1];
       audio.pause();
       audio.currentTime = 0;
       audio.src = previous.src;
@@ -67,7 +73,9 @@ ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].sr
 });
 
 function playNext() {
-  const next = playlist[playlist.findIndex(x => audio.src.includes(x.src)) + 1] || playlist[0];
+  const next = playback.random ?
+    playlist[Math.floor(Math.random() * playlist.length)] :
+    playlist[playlist.findIndex(x => audio.src.includes(x.src)) + 1] || playlist[0];
   audio.pause();
   audio.currentTime = 0;
   audio.src = next.src;
