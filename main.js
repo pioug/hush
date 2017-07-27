@@ -2,7 +2,8 @@ import {
   app,
   BrowserWindow,
   globalShortcut,
-  ipcMain
+  ipcMain,
+  Menu
 } from 'electron';
 import fs from 'fs';
 import path from 'path';
@@ -17,13 +18,17 @@ const lastPlaylist = fs.existsSync(path.join(app.getPath('userData'), 'last-play
   [];
 
 global.state = {
-  playlist: lastPlaylist
+  playlist: lastPlaylist,
+  playback: {
+    random: true
+  }
 };
 
 app.on('ready', () => {
   createGui();
   createPlayer();
   bindShorcuts();
+  createMenu();
 });
 
 app.on('window-all-closed', () => {
@@ -148,4 +153,26 @@ function bindShorcuts() {
       command: 'next'
     })
   });
+}
+
+function createMenu() {
+  const template = [{
+    label: app.getName(),
+    submenu: [{
+      role: 'quit'
+    }]
+  }, {
+    label: 'Playback',
+    submenu: [{
+      label: 'Random',
+      type: 'checkbox',
+      checked: true,
+      click() {
+        global.state.playback.random = !global.state.playback.random;
+        player.webContents.send('Main:playbackupdate', global.state.playback);
+      }
+    }]
+  }];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }

@@ -1,9 +1,5 @@
 import { ipcRenderer, remote } from 'electron';
 
-const playback = {
-  random: true
-};
-
 const audio = new Audio();
 const audioCtx = new AudioContext();
 const source = audioCtx.createMediaElementSource(audio);
@@ -28,7 +24,12 @@ ipcRenderer.on('Main:playlistupdate', (event, { playlist: newPlaylist = [] }) =>
   playlist = newPlaylist
 });
 
+ipcRenderer.on('Main:playbackupdate', (event, params) => {
+  Object.assign(playback, ...params);
+});
+
 let playlist = remote.getGlobal('state').playlist;
+let playback = remote.getGlobal('state').playback;
 let playing;
 
 ipcRenderer.on('Player:command', function(event, { command, src = playlist[0].src, currentTime = 0 }) {
