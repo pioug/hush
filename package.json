@@ -2,20 +2,22 @@
   "name": "hush",
   "version": "0.0.0",
   "scripts": {
-    "start": "electron -r babel-register main.js"
+    "build": "electron-packager --overwrite .",
+    "start": "electron ."
   },
   "devDependencies": {
     "babel-eslint": "7.2.3",
+    "electron": "1.6.11",
+    "electron-packager": "8.7.2",
+    "eslint": "4.3.0",
+    "eslint-plugin-react": "7.1.0"
+  },
+  "dependencies": {
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-object-rest-spread": "6.23.0",
     "babel-plugin-transform-react-jsx": "6.24.1",
     "babel-preset-es2015": "6.24.1",
     "babel-register": "6.24.1",
-    "electron": "1.6.11",
-    "eslint": "4.3.0",
-    "eslint-plugin-react": "7.1.0"
-  },
-  "dependencies": {
     "glob": "7.1.2",
     "jsmediatags": "3.6.2",
     "preact": "8.2.1"
