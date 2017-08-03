@@ -5,6 +5,15 @@ import { ipcRenderer, remote } from 'electron';
 
 import { Component, h, render } from 'preact';
 
+class Search extends Component {
+  handleKeyup = e => {
+    this.props.keyup(e.target.value);
+  }
+  render() {
+    return <input id="search" type="search" onkeyup={this.handleKeyup}/>;
+  }
+}
+
 class Player extends Component {
   moveProgressbar = e => {
     const deleter = () => {
@@ -28,7 +37,7 @@ class Player extends Component {
     document.title = `${playing.artist} - ${playing.title}`;
 
     return (
-      <aside>
+      <footer>
         <div class="player-progress" onmousedown={this.moveProgressbar}>
           <div class="player-progress-bar" style={style}></div>
         </div>
@@ -36,7 +45,7 @@ class Player extends Component {
           <div>{playing.artist} - {playing.title}</div>
           <div>{displayDuration(currentTime)} / {displayDuration(duration)}</div>
         </div>
-      </aside>
+      </footer>
     );
   }
 }
@@ -75,7 +84,8 @@ class Sonogram extends Component {
     const { playing = { src: '' }, playlist = [] } = mainState;
     return {
       playing: playlist.find(song => playing.src.includes(song.src)),
-      playlist
+      playlist,
+      library: playlist
     };
   })()
   mousedownSongItem = x => {
@@ -93,13 +103,21 @@ class Sonogram extends Component {
       currentTime: this.state.duration * ratio
     });
   }
+  searchSong = search => {
+    if (search) {
+      const playlist = this.state.library.filter(({ title }) => title.toLowerCase().includes(search.toLowerCase()));
+      this.setState({ playlist });
+    } else {
+      this.setState({ playlist: this.state.library });
+    }
+  }
   componentDidMount() {
     ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
       this.setState({ currentTime, duration });
     });
     ipcRenderer.on('Main:playlistupdate', (event, { playlist = [] }) => {
       playlist = JSON.parse(JSON.stringify(playlist));
-      this.setState({ playlist });
+      this.setState({ playlist, library: playlist });
     });
 
     ipcRenderer.on('Player:play', (event, { src = '' }) => {
@@ -141,10 +159,18 @@ class Sonogram extends Component {
           event.preventDefault();
           break;
         }
+        case 'f': {
+          if (event.metaKey) {
+            const elSearch = document.getElementById('search');
+            elSearch.focus();
+            event.preventDefault();
+          }
+        }
       }
     });
   }
   render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
+
     const list = playlist.map(x =>
       <SongItem
         mousedown={this.mousedownSongItem}
@@ -156,6 +182,7 @@ class Sonogram extends Component {
 
     return (
       <main>
+        <Search keyup={this.searchSong}/>
         <section id="list">{list}</section>
         <Player
           setCurrentTime={this.setCurrentTime}
