@@ -108,16 +108,31 @@ class Sonogram extends Component {
     });
 
     window.addEventListener('keydown', event => {
+      const SONG_ITEM_HEIGHT = 19;
       switch (event.key) {
         case 'ArrowUp': {
-          const selected = this.state.playlist[this.state.playlist.indexOf(this.state.selected) - 1];
+          const index = this.state.playlist.indexOf(this.state.selected) - 1;
+          const selected = this.state.playlist[index];
           this.setState({ selected });
+
+          const elList = document.getElementById('list');
+          if (index * SONG_ITEM_HEIGHT < elList.scrollTop) {
+            elList.scrollTop = index * SONG_ITEM_HEIGHT;
+          }
+
           event.preventDefault();
           break;
         }
         case 'ArrowDown': {
-          const selected = this.state.playlist[this.state.playlist.indexOf(this.state.selected) + 1];
+          const index = this.state.playlist.indexOf(this.state.selected) + 1;
+          const selected = this.state.playlist[index];
           this.setState({ selected });
+
+          const elList = document.getElementById('list');
+          if ((index + 1) * SONG_ITEM_HEIGHT > elList.scrollTop + elList.clientHeight) {
+            elList.scrollTop = (index + 1) * SONG_ITEM_HEIGHT - elList.clientHeight;
+          }
+
           event.preventDefault();
           break;
         }
@@ -141,7 +156,7 @@ class Sonogram extends Component {
 
     return (
       <main>
-        <section>{list}</section>
+        <section id="list">{list}</section>
         <Player
           setCurrentTime={this.setCurrentTime}
           playing={playing}
