@@ -24,6 +24,9 @@ class Player extends Component {
     const style = {
       width: currentTime / duration * 100 + '%'
     };
+
+    document.title = `${playing.artist} - ${playing.title}`;
+
     return (
       <aside>
         <div class="player-progress" onmousedown={this.moveProgressbar}>
