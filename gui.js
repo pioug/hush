@@ -106,6 +106,28 @@ class Sonogram extends Component {
       const playing = this.state.playlist.find(song => src.includes(song.src));
       this.setState({ playing });
     });
+
+    window.addEventListener('keydown', event => {
+      switch (event.key) {
+        case 'ArrowUp': {
+          const selected = this.state.playlist[this.state.playlist.indexOf(this.state.selected) - 1];
+          this.setState({ selected });
+          event.preventDefault();
+          break;
+        }
+        case 'ArrowDown': {
+          const selected = this.state.playlist[this.state.playlist.indexOf(this.state.selected) + 1];
+          this.setState({ selected });
+          event.preventDefault();
+          break;
+        }
+        case 'Enter': {
+          this.play(this.state.selected);
+          event.preventDefault();
+          break;
+        }
+      }
+    });
   }
   render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
     const list = playlist.map(x =>
