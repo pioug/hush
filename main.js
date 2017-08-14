@@ -72,7 +72,7 @@ ipcMain.on('Main:playlistupdate', (event, { files = [] }) => {
       jsmediatags.read(file.src, {
         onSuccess: e => {
           const { artist, title, album } = e.tags;
-          console.log(i++, files.length);
+          console.log(i++, files.length, file.src);
           songs.push({
             album,
             artist,
