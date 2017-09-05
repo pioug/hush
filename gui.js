@@ -234,7 +234,7 @@ window.addEventListener('drop', event => {
     .reduce((res, x) => {
       const stats = fs.statSync(x.path);
       if (stats.isDirectory()) {
-        return [...res, ...glob.sync(x.path + '/**/*.{mp3,m4a,flac,aac}').map(x => ({ src: x }))];
+        return [...res, ...glob.sync(escapeSquareBrackets(x.path) + '/**/*.{mp3,m4a,flac,aac}').map(x => ({ src: x }))];
       } else {
         if (['.mp3', '.m4a', '.flac', '.aac'].includes(path.extname(x.path))) {
           return [...res, { src: x.path }];
@@ -246,3 +246,7 @@ window.addEventListener('drop', event => {
 
   ipcRenderer.send('Main:playlistupdate', { files });
 });
+
+function escapeSquareBrackets(str) {
+  return str.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+}
