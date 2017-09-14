@@ -34,7 +34,9 @@ class Player extends Component {
       width: currentTime / duration * 100 + '%'
     };
 
-    document.title = `${playing.artist} - ${playing.title}`;
+    document.title = playing.artist && playing.title ?
+      `${playing.artist} - ${playing.title}` :
+      'hush';
 
     return (
       <footer>
