@@ -3,14 +3,18 @@ import glob from 'glob';
 import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 
+import Fuse from 'fuse.js';
 import { Component, h, render } from 'preact';
 
 class Search extends Component {
-  handleKeyup = e => {
-    this.props.keyup(e.target.value);
+  handleInput = e => {
+    this.props.input(e);
+  }
+  handleFocus = e => {
+    this.props.focus(e);
   }
   render() {
-    return <input id="search" type="search" onkeyup={this.handleKeyup}/>;
+    return <input id="search" type="search" oninput={this.handleInput} onfocus={this.handleFocus}/>;
   }
 }
 
@@ -105,13 +109,33 @@ class Sonogram extends Component {
       currentTime: this.state.duration * ratio
     });
   }
-  searchSong = search => {
+  searchSong = e => {
+    const search = e.target.value;
     if (search) {
-      const playlist = this.state.library.filter(({ title }) => title.toLowerCase().includes(search.toLowerCase()));
-      this.setState({ playlist });
+      const playlist = this.fuse.search(search);
+      const selected = playlist[0];
+      const elList = document.getElementById('list');
+      elList.scrollTop = 0;
+      this.setState({ playlist, selected });
     } else {
-      this.setState({ playlist: this.state.library });
+      const selected = this.state.library[0];
+      this.setState({ playlist: this.state.library, selected });
     }
+  }
+  initFuse = () => {
+    this.fuse = new Fuse(this.state.library, {
+      keys: [{
+        name: 'title',
+        weight: 0.5
+      }, {
+        name: 'album',
+        weight: 0.3
+      }, {
+        name: 'artist',
+        weight: 0.2
+      }],
+      shouldSort: true
+    })
   }
   componentDidMount() {
     ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
@@ -123,7 +147,7 @@ class Sonogram extends Component {
     });
 
     ipcRenderer.on('Player:play', (event, { src = '' }) => {
-      const playing = this.state.playlist.find(song => src.includes(song.src));
+      const playing = this.state.library.find(song => src.includes(song.src));
       this.setState({ playing });
     });
 
@@ -165,7 +189,9 @@ class Sonogram extends Component {
           if (event.metaKey) {
             const elSearch = document.getElementById('search');
             elSearch.focus();
+            elSearch.setSelectionRange(0, elSearch.value.length)
             event.preventDefault();
+            event.stopPropagation();
           }
         }
       }
@@ -184,7 +210,7 @@ class Sonogram extends Component {
 
     return (
       <main>
-        <Search keyup={this.searchSong}/>
+        <Search input={this.searchSong} focus={this.initFuse}/>
         <section id="list">{list}</section>
         <Player
           setCurrentTime={this.setCurrentTime}
