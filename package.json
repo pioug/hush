@@ -6,10 +6,10 @@
     "start": "electron ."
   },
   "devDependencies": {
-    "babel-eslint": "8.0.2",
-    "electron": "1.7.9",
-    "electron-builder": "19.45.5",
-    "eslint": "4.11.0",
+    "babel-eslint": "8.2.1",
+    "electron": "1.7.10",
+    "electron-builder": "19.52.1",
+    "eslint": "4.15.0",
     "eslint-plugin-react": "7.5.1"
   },
   "dependencies": {
@@ -21,6 +21,6 @@
     "fuse.js": "3.2.0",
     "glob": "7.1.2",
     "jsmediatags": "3.8.1",
-    "preact": "8.2.6"
+    "preact": "8.2.7"
   }
 }
