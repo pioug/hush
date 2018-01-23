@@ -1,28 +1,35 @@
-import fs from 'fs';
-import glob from 'glob';
-import path from 'path';
-import { ipcRenderer, remote } from 'electron';
+import fs from "fs";
+import glob from "glob";
+import path from "path";
+import { ipcRenderer, remote } from "electron";
 
-import Fuse from 'fuse.js';
-import { Component, h, render } from 'preact';
+import Fuse from "fuse.js";
+import { Component, h, render } from "preact";
 
 class Search extends Component {
   handleInput = e => {
     this.props.input(e);
-  }
+  };
   handleFocus = e => {
     this.props.focus(e);
-  }
+  };
   render() {
-    return <input id="search" type="search" oninput={this.handleInput} onfocus={this.handleFocus}/>;
+    return (
+      <input
+        id="search"
+        type="search"
+        oninput={this.handleInput}
+        onfocus={this.handleFocus}
+      />
+    );
   }
 }
 
 class Player extends Component {
   moveProgressbar = e => {
     const deleter = () => {
-      window.removeEventListener('mousemove', setter);
-      window.removeEventListener('mouseup', deleter);
+      window.removeEventListener("mousemove", setter);
+      window.removeEventListener("mouseup", deleter);
     };
 
     const setter = e => {
@@ -30,26 +37,31 @@ class Player extends Component {
     };
 
     setter(e);
-    window.addEventListener('mousemove', setter);
-    window.addEventListener('mouseup', deleter);
-  }
+    window.addEventListener("mousemove", setter);
+    window.addEventListener("mouseup", deleter);
+  };
   render({ playing, currentTime = 0, duration = 0 }) {
     const style = {
-      width: currentTime / duration * 100 + '%'
+      width: currentTime / duration * 100 + "%"
     };
 
-    document.title = playing.artist && playing.title ?
-      `${playing.artist} - ${playing.title}` :
-      'hush';
+    document.title =
+      playing.artist && playing.title
+        ? `${playing.artist} - ${playing.title}`
+        : "hush";
 
     return (
       <footer>
         <div class="player-progress" onmousedown={this.moveProgressbar}>
-          <div class="player-progress-bar" style={style}></div>
+          <div class="player-progress-bar" style={style} />
         </div>
         <div class="player-infos">
-          <div>{playing.artist} - {playing.title}</div>
-          <div>{displayDuration(currentTime)} / {displayDuration(duration)}</div>
+          <div>
+            {playing.artist} - {playing.title}
+          </div>
+          <div>
+            {displayDuration(currentTime)} / {displayDuration(duration)}
+          </div>
         </div>
       </footer>
     );
@@ -59,23 +71,22 @@ class Player extends Component {
 class SongItem extends Component {
   handleMousedown = () => {
     this.props.mousedown(this.props.song);
-  }
+  };
   handleDblclick = () => {
     this.props.dblclick(this.props.song);
-  }
+  };
   render({ playing, song, selected }) {
     const style = {
-      'background-color': song.src === selected.src ? '#292b3d' : null,
-      color: song.src === playing.src ?
-        '#ff0066' :
-        'inherit',
+      "background-color": song.src === selected.src ? "#292b3d" : null,
+      color: song.src === playing.src ? "#ff0066" : "inherit"
     };
 
     return (
       <article
         onmousedown={this.handleMousedown}
         ondblclick={this.handleDblclick}
-        style={style}>
+        style={style}
+      >
         <span>{song.artist}</span>
         <span>{song.title}</span>
         <span>{song.album}</span>
@@ -86,80 +97,87 @@ class SongItem extends Component {
 
 class Sonogram extends Component {
   state = (() => {
-    const mainState = JSON.parse(JSON.stringify(remote.getGlobal('state')));
-    const { playing = { src: '' }, playlist = [] } = mainState;
+    const mainState = JSON.parse(JSON.stringify(remote.getGlobal("state")));
+    const { playing = { src: "" }, playlist = [] } = mainState;
     return {
       playing: playlist.find(song => playing.src.includes(song.src)),
       playlist,
       library: playlist
     };
-  })()
+  })();
   mousedownSongItem = x => {
-    this.setState({ selected: x })
-  }
+    this.setState({ selected: x });
+  };
   play = ({ ...x }) => {
-    ipcRenderer.send('Player:command', {
-      command: 'play',
+    ipcRenderer.send("Player:command", {
+      command: "play",
       ...x
     });
-  }
-  setCurrentTime = (ratio) => {
-    ipcRenderer.send('Player:command', {
-      command: 'currentTime',
+  };
+  setCurrentTime = ratio => {
+    ipcRenderer.send("Player:command", {
+      command: "currentTime",
       currentTime: this.state.duration * ratio
     });
-  }
+  };
   searchSong = e => {
     const search = e.target.value;
     if (search) {
       const playlist = this.fuse.search(search);
       const selected = playlist[0];
-      const elList = document.getElementById('list');
+      const elList = document.getElementById("list");
       elList.scrollTop = 0;
       this.setState({ playlist, selected });
     } else {
       const selected = this.state.library[0];
       this.setState({ playlist: this.state.library, selected });
     }
-  }
+  };
   initFuse = () => {
     this.fuse = new Fuse(this.state.library, {
-      keys: [{
-        name: 'title',
-        weight: 0.5
-      }, {
-        name: 'album',
-        weight: 0.3
-      }, {
-        name: 'artist',
-        weight: 0.2
-      }],
+      keys: [
+        {
+          name: "title",
+          weight: 0.5
+        },
+        {
+          name: "album",
+          weight: 0.3
+        },
+        {
+          name: "artist",
+          weight: 0.2
+        }
+      ],
       shouldSort: true
-    })
-  }
-  componentDidMount() {
-    ipcRenderer.on('Player:timeupdate', (event, { currentTime = 0, duration = 0 }) => {
-      this.setState({ currentTime, duration });
     });
-    ipcRenderer.on('Main:playlistupdate', (event, { playlist = [] }) => {
+  };
+  componentDidMount() {
+    ipcRenderer.on(
+      "Player:timeupdate",
+      (event, { currentTime = 0, duration = 0 }) => {
+        this.setState({ currentTime, duration });
+      }
+    );
+    ipcRenderer.on("Main:playlistupdate", (event, { playlist = [] }) => {
       playlist = JSON.parse(JSON.stringify(playlist));
       this.setState({ playlist, library: playlist });
     });
 
-    ipcRenderer.on('Player:play', (event, { src = '' }) => {
+    ipcRenderer.on("Player:play", (event, { src = "" }) => {
       const playing = this.state.library.find(song => src.includes(song.src));
       this.setState({ playing });
     });
 
-    window.addEventListener('keydown', event => {
+    window.addEventListener("keydown", event => {
       const SONG_ITEM_HEIGHT = 19;
       switch (event.key) {
-        case 'ArrowUp': {
+        case "ArrowUp": {
           const index = this.state.playlist.indexOf(this.state.selected) - 1;
           const selected = this.state.playlist[index];
           this.setState({ selected });
 
-          const elList = document.getElementById('list');
+          const elList = document.getElementById("list");
           if (index * SONG_ITEM_HEIGHT < elList.scrollTop) {
             elList.scrollTop = index * SONG_ITEM_HEIGHT;
           }
@@ -167,29 +185,33 @@ class Sonogram extends Component {
           event.preventDefault();
           break;
         }
-        case 'ArrowDown': {
+        case "ArrowDown": {
           const index = this.state.playlist.indexOf(this.state.selected) + 1;
           const selected = this.state.playlist[index];
           this.setState({ selected });
 
-          const elList = document.getElementById('list');
-          if ((index + 1) * SONG_ITEM_HEIGHT > elList.scrollTop + elList.clientHeight) {
-            elList.scrollTop = (index + 1) * SONG_ITEM_HEIGHT - elList.clientHeight;
+          const elList = document.getElementById("list");
+          if (
+            (index + 1) * SONG_ITEM_HEIGHT >
+            elList.scrollTop + elList.clientHeight
+          ) {
+            elList.scrollTop =
+              (index + 1) * SONG_ITEM_HEIGHT - elList.clientHeight;
           }
 
           event.preventDefault();
           break;
         }
-        case 'Enter': {
+        case "Enter": {
           this.play(this.state.selected);
           event.preventDefault();
           break;
         }
-        case 'f': {
+        case "f": {
           if (event.metaKey) {
-            const elSearch = document.getElementById('search');
+            const elSearch = document.getElementById("search");
             elSearch.focus();
-            elSearch.setSelectionRange(0, elSearch.value.length)
+            elSearch.setSelectionRange(0, elSearch.value.length);
             event.preventDefault();
             event.stopPropagation();
           }
@@ -197,26 +219,36 @@ class Sonogram extends Component {
       }
     });
   }
-  render(children, { playlist = [], selected = {}, playing = {}, currentTime = 0, duration = 0 }) {
-
-    const list = playlist.map(x =>
+  render(
+    children,
+    {
+      playlist = [],
+      selected = {},
+      playing = {},
+      currentTime = 0,
+      duration = 0
+    }
+  ) {
+    const list = playlist.map(x => (
       <SongItem
         mousedown={this.mousedownSongItem}
         dblclick={this.play}
         song={x}
         playing={playing}
-        selected={selected}/>
-    );
+        selected={selected}
+      />
+    ));
 
     return (
       <main>
-        <Search input={this.searchSong} focus={this.initFuse}/>
+        <Search input={this.searchSong} focus={this.initFuse} />
         <section id="list">{list}</section>
         <Player
           setCurrentTime={this.setCurrentTime}
           playing={playing}
           currentTime={currentTime}
-          duration={duration} />
+          duration={duration}
+        />
       </main>
     );
   }
@@ -248,33 +280,36 @@ function to2(val) {
 
 render(<Sonogram />, document.body);
 
-window.addEventListener('dragover', event => {
+window.addEventListener("dragover", event => {
   event.preventDefault();
   event.stopPropagation();
 });
 
-
-window.addEventListener('drop', event => {
+window.addEventListener("drop", event => {
   event.preventDefault();
   event.stopPropagation();
 
-  const files = Array.from(event.dataTransfer.files)
-    .reduce((res, x) => {
-      const stats = fs.statSync(x.path);
-      if (stats.isDirectory()) {
-        return [...res, ...glob.sync(escapeSquareBrackets(x.path) + '/**/*.{mp3,m4a,flac,aac}').map(x => ({ src: x }))];
-      } else {
-        if (['.mp3', '.m4a', '.flac', '.aac'].includes(path.extname(x.path))) {
-          return [...res, { src: x.path }];
-        }
-
-        return res;
+  const files = Array.from(event.dataTransfer.files).reduce((res, x) => {
+    const stats = fs.statSync(x.path);
+    if (stats.isDirectory()) {
+      return [
+        ...res,
+        ...glob
+          .sync(escapeSquareBrackets(x.path) + "/**/*.{mp3,m4a,flac,aac}")
+          .map(x => ({ src: x }))
+      ];
+    } else {
+      if ([".mp3", ".m4a", ".flac", ".aac"].includes(path.extname(x.path))) {
+        return [...res, { src: x.path }];
       }
-    }, []);
 
-  ipcRenderer.send('Main:playlistupdate', { files });
+      return res;
+    }
+  }, []);
+
+  ipcRenderer.send("Main:playlistupdate", { files });
 });
 
 function escapeSquareBrackets(str) {
-  return str.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+  return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]");
 }

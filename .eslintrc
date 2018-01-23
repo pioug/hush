@@ -5,6 +5,7 @@
     "ecmaVersion": 8,
     "sourceType": "module",
     "ecmaFeatures": {
+      "experimentalObjectRestSpread": true,
       "jsx": true
     }
   },
@@ -17,14 +18,10 @@
     "es6": true
   },
   "rules": {
-    "camelcase": 0,
-    "no-multi-spaces": 2,
     "no-unused-vars": [2, {
       "varsIgnorePattern": "^h$"
     }],
-    "react/jsx-uses-vars": 2,
-    "space-before-blocks": [2, "always"],
-    "space-before-function-paren": [2, "never"]
+    "react/jsx-uses-vars": 2
   },
   "settings": {
     "react": {

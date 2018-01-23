@@ -10,7 +10,8 @@
     "electron": "1.7.10",
     "electron-builder": "19.54.0",
     "eslint": "4.16.0",
-    "eslint-plugin-react": "7.5.1"
+    "eslint-plugin-react": "7.5.1",
+    "prettier": "1.10.2"
   },
   "dependencies": {
     "babel-plugin-transform-class-properties": "6.24.1",

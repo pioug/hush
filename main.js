@@ -1,21 +1,17 @@
-import {
-  app,
-  BrowserWindow,
-  globalShortcut,
-  ipcMain,
-  Menu
-} from 'electron';
-import fs from 'fs';
-import path from 'path';
-import url from 'url';
-import jsmediatags from 'jsmediatags';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu } from "electron";
+import fs from "fs";
+import path from "path";
+import url from "url";
+import jsmediatags from "jsmediatags";
 
 let gui;
 let player;
 
-const lastPlaylist = fs.existsSync(path.join(app.getPath('userData'), 'last-playlist.json')) ?
-  require(path.join(app.getPath('userData'), 'last-playlist.json')) :
-  [];
+const lastPlaylist = fs.existsSync(
+  path.join(app.getPath("userData"), "last-playlist.json")
+)
+  ? require(path.join(app.getPath("userData"), "last-playlist.json"))
+  : [];
 
 global.state = {
   playlist: lastPlaylist,
@@ -24,166 +20,194 @@ global.state = {
   }
 };
 
-app.on('ready', () => {
+app.on("ready", () => {
   createGui();
   createPlayer();
   bindShorcuts();
   createMenu();
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
   }
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (gui === null) {
-    createGui()
+    createGui();
   }
 });
 
-ipcMain.on('Player:timeupdate', (event, params) => {
+ipcMain.on("Player:timeupdate", (event, params) => {
   if (gui) {
-    gui.webContents.send('Player:timeupdate', params)
+    gui.webContents.send("Player:timeupdate", params);
   }
 });
 
-ipcMain.on('Player:play', (event, params) => {
+ipcMain.on("Player:play", (event, params) => {
   if (gui) {
-    gui.webContents.send('Player:play', params)
+    gui.webContents.send("Player:play", params);
   }
 
   global.state.playing = params;
 });
 
-ipcMain.on('Player:command', (event, params) => {
+ipcMain.on("Player:command", (event, params) => {
   if (player) {
-    player.webContents.send('Player:command', params)
+    player.webContents.send("Player:command", params);
   }
 });
 
-ipcMain.on('Main:playlistupdate', (event, { files = [] }) => {
+ipcMain.on("Main:playlistupdate", (event, { files = [] }) => {
   let i = 0;
   let songs = [];
 
   const promise = files.reduce((acc, file) => {
-    return acc.then(() => new Promise((res, rej) => {
-      jsmediatags.read(file.src, {
-        onSuccess: e => {
-          const { artist, title, album } = e.tags;
-          console.log(i++, files.length, file.src);
-          songs.push({
-            album,
-            artist,
-            title,
+    return acc.then(
+      () =>
+        new Promise((res, rej) => {
+          jsmediatags.read(file.src, {
+            onSuccess: e => {
+              const { artist, title, album } = e.tags;
+              console.log(i++, files.length, file.src);
+              songs.push({
+                album,
+                artist,
+                title,
 
-            // Encode question mark in filename/filepath
-            src: file.src.split(path.sep).map(encodeURIComponent).join(path.sep)
+                // Encode question mark in filename/filepath
+                src: file.src
+                  .split(path.sep)
+                  .map(encodeURIComponent)
+                  .join(path.sep)
+              });
+              res(songs);
+            },
+            onError: rej
           });
-          res(songs);
-        },
-        onError: rej
-      })
-    }));
+        })
+    );
   }, Promise.resolve(songs));
 
-  promise
-    .then(() => {
-      global.state.playlist = songs;
+  promise.then(() => {
+    global.state.playlist = songs;
 
-      fs.writeFile(path.join(app.getPath('userData'), 'last-playlist.json'), JSON.stringify(songs), err => {
+    fs.writeFile(
+      path.join(app.getPath("userData"), "last-playlist.json"),
+      JSON.stringify(songs),
+      err => {
         if (err) throw err;
-      });
-
-      if (gui) {
-        gui.webContents.send('Main:playlistupdate', global.state)
       }
+    );
 
-      if (player) {
-        player.webContents.send('Main:playlistupdate', global.state)
-      }
-    });
+    if (gui) {
+      gui.webContents.send("Main:playlistupdate", global.state);
+    }
+
+    if (player) {
+      player.webContents.send("Main:playlistupdate", global.state);
+    }
+  });
 });
 
 function createGui() {
   gui = new BrowserWindow({ width: 800, height: 600 });
 
-  gui.loadURL(url.format({
-    pathname: path.join(__dirname, 'gui.html'),
-    protocol: 'file:',
-    slashes: true,
-    icon: path.join(__dirname, 'icon.png')
-  }));
+  gui.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "gui.html"),
+      protocol: "file:",
+      slashes: true,
+      icon: path.join(__dirname, "icon.png")
+    })
+  );
 
   gui.webContents.openDevTools();
 
-  gui.on('closed', () => gui = null);
+  gui.on("closed", () => (gui = null));
 }
 
 function createPlayer() {
   player = new BrowserWindow({ width: 800, height: 600, show: false });
 
-  player.loadURL(url.format({
-    pathname: path.join(__dirname, 'player.html'),
-    protocol: 'file:',
-    slashes: true
-  }));
+  player.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "player.html"),
+      protocol: "file:",
+      slashes: true
+    })
+  );
 
   player.webContents.openDevTools();
 
-  player.on('closed', () => gui = null);
+  player.on("closed", () => (gui = null));
 }
 
 function bindShorcuts() {
-  globalShortcut.register('MediaPreviousTrack', () => {
-    player.webContents.send('Player:command', {
-      command: 'previous'
+  globalShortcut.register("MediaPreviousTrack", () => {
+    player.webContents.send("Player:command", {
+      command: "previous"
     });
   });
 
-  globalShortcut.register('MediaPlayPause', () => {
-    player.webContents.send('Player:command', {
-      command: 'pause'
+  globalShortcut.register("MediaPlayPause", () => {
+    player.webContents.send("Player:command", {
+      command: "pause"
     });
   });
 
-  globalShortcut.register('MediaNextTrack', () => {
-    player.webContents.send('Player:command', {
-      command: 'next'
-    })
+  globalShortcut.register("MediaNextTrack", () => {
+    player.webContents.send("Player:command", {
+      command: "next"
+    });
   });
 }
 
 function createMenu() {
-  const template = [{
-    label: app.getName(),
-    submenu: [{
-      role: 'quit'
-    }]
-  }, {
-    label: "Edit",
-    submenu: [
-      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-      { type: "separator" },
-      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-    ]
-  }, {
-    label: 'Playback',
-    submenu: [{
-      label: 'Random',
-      type: 'checkbox',
-      checked: true,
-      click() {
-        global.state.playback.random = !global.state.playback.random;
-        player.webContents.send('Main:playbackupdate', global.state.playback);
-      }
-    }]
-  }];
+  const template = [
+    {
+      label: app.getName(),
+      submenu: [
+        {
+          role: "quit"
+        }
+      ]
+    },
+    {
+      label: "Edit",
+      submenu: [
+        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+        { type: "separator" },
+        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+        {
+          label: "Select All",
+          accelerator: "CmdOrCtrl+A",
+          selector: "selectAll:"
+        }
+      ]
+    },
+    {
+      label: "Playback",
+      submenu: [
+        {
+          label: "Random",
+          type: "checkbox",
+          checked: true,
+          click() {
+            global.state.playback.random = !global.state.playback.random;
+            player.webContents.send(
+              "Main:playbackupdate",
+              global.state.playback
+            );
+          }
+        }
+      ]
+    }
+  ];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
