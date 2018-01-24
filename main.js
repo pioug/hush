@@ -1,24 +1,64 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu } from "electron";
+import _ from "lodash";
 import fs from "fs";
-import path from "path";
-import url from "url";
 import jsmediatags from "jsmediatags";
+import path from "path";
+import RxDB from "rxdb";
+import url from "url";
+import webSqlAdapter from "pouchdb-adapter-node-websql";
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu } from "electron";
+
+RxDB.plugin(webSqlAdapter);
+
+const openDatabase = _.once(openDatabase_);
 
 let gui;
 let player;
 
-const lastPlaylist = fs.existsSync(
-  path.join(app.getPath("userData"), "last-playlist.json")
-)
-  ? require(path.join(app.getPath("userData"), "last-playlist.json"))
-  : [];
+function openDatabase_() {
+  return RxDB.create({
+    name: path.join(app.getPath("userData"), "database"),
+    adapter: "websql",
+    multiInstance: true
+  });
+}
 
-global.state = {
-  playlist: lastPlaylist,
-  playback: {
-    random: true
-  }
-};
+async function openCollection({
+  database_ = openDatabase(),
+  name = "library"
+} = {}) {
+  const database = await database_;
+  const schema = {
+    library: {
+      version: 0,
+      type: "object",
+      properties: {
+        album: { type: "string" },
+        artist: { type: "string" },
+        src: { primary: true, type: "string" },
+        title: { type: "string" }
+      }
+    }
+  }[name];
+
+  return database.collection({
+    name: name,
+    schema
+  });
+}
+
+async function getLibrary() {
+  const collection = await openCollection();
+  return collection.find().exec();
+}
+
+getLibrary().then(library => {
+  global.state = {
+    playlist: library,
+    playback: {
+      random: true
+    }
+  };
+});
 
 app.on("ready", () => {
   createGui();
@@ -93,13 +133,12 @@ ipcMain.on("Main:playlistupdate", (event, { files = [] }) => {
   promise.then(() => {
     global.state.playlist = songs;
 
-    fs.writeFile(
-      path.join(app.getPath("userData"), "last-playlist.json"),
-      JSON.stringify(songs),
-      err => {
-        if (err) throw err;
-      }
-    );
+    openDatabase()
+      .then(async (db) => {
+        await db.library.remove();
+        await openCollection();
+        songs.map(song => db.library.insert(song));
+      })
 
     if (gui) {
       gui.webContents.send("Main:playlistupdate", global.state);
