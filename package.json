@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "pack": "build",
-    "start": "electron ."
+    "start": "DEBUG=true electron .",
+    "postinstall": "install-app-deps"
   },
   "devDependencies": {
     "babel-eslint": "8.2.1",

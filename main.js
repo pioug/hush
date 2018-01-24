@@ -123,7 +123,9 @@ function createGui() {
     })
   );
 
-  gui.webContents.openDevTools();
+  if (process.env.DEBUG) {
+    gui.webContents.openDevTools();
+  }
 
   gui.on("closed", () => (gui = null));
 }
@@ -139,7 +141,9 @@ function createPlayer() {
     })
   );
 
-  player.webContents.openDevTools();
+  if (process.env.DEBUG) {
+    player.webContents.openDevTools();
+  }
 
   player.on("closed", () => (gui = null));
 }
