@@ -133,12 +133,11 @@ ipcMain.on("Main:playlistupdate", (event, { files = [] }) => {
   promise.then(() => {
     global.state.playlist = songs;
 
-    openDatabase()
-      .then(async (db) => {
-        await db.library.remove();
-        await openCollection();
-        songs.map(song => db.library.insert(song));
-      })
+    openDatabase().then(async db => {
+      await db.library.remove();
+      await openCollection();
+      songs.map(song => db.library.insert(song));
+    });
 
     if (gui) {
       gui.webContents.send("Main:playlistupdate", global.state);
