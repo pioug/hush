@@ -212,9 +212,15 @@ function createMenu() {
     {
       label: app.getName(),
       submenu: [
-        {
-          role: "quit"
-        }
+        { role: "about" },
+        { type: "separator" },
+        { role: "services", submenu: [] },
+        { type: "separator" },
+        { role: "hide" },
+        { role: "hideothers" },
+        { role: "unhide" },
+        { type: "separator" },
+        { role: "quit" }
       ]
     },
     {
@@ -249,6 +255,10 @@ function createMenu() {
           }
         }
       ]
+    },
+    {
+      role: "window",
+      submenu: [{ role: "minimize" }, { role: "close" }]
     }
   ];
 
