@@ -11,6 +11,7 @@ RxDB.plugin(webSqlAdapter);
 
 const openDatabase = _.once(openDatabase_);
 
+let guiBounds = {};
 let gui;
 let player;
 
@@ -150,7 +151,7 @@ ipcMain.on("Main:playlistupdate", (event, { files = [] }) => {
 });
 
 function createGui() {
-  gui = new BrowserWindow({ width: 800, height: 600 });
+  gui = new BrowserWindow({ width: 800, height: 600, ...guiBounds });
 
   gui.loadURL(
     url.format({
@@ -165,11 +166,17 @@ function createGui() {
     gui.webContents.openDevTools();
   }
 
-  gui.on("closed", () => (gui = null));
+  gui.on("close", () => {
+    guiBounds = gui.getBounds();
+  });
+
+  gui.on("closed", () => {
+    gui = null;
+  });
 }
 
 function createPlayer() {
-  player = new BrowserWindow({ width: 800, height: 600, show: false });
+  player = new BrowserWindow({ show: false });
 
   player.loadURL(
     url.format({
@@ -183,7 +190,9 @@ function createPlayer() {
     player.webContents.openDevTools();
   }
 
-  player.on("closed", () => (gui = null));
+  player.on("closed", () => {
+    player = null;
+  });
 }
 
 function bindShorcuts() {
