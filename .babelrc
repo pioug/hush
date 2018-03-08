@@ -1,8 +1,17 @@
 {
-  "presets": ["es2015"],
+  "presets": [
+    ["@babel/preset-env", {
+      "shippedProposals": true,
+      "targets": {
+        "electron": "1.8.3"
+      }
+    }]
+  ],
   "plugins": [
-    "transform-class-properties",
-    "transform-object-rest-spread",
-    ["transform-react-jsx", { "pragma": "h" }]
+    "@babel/plugin-proposal-class-properties",
+    ["@babel/transform-react-jsx", { "pragma": "h" }]
+  ],
+  "ignore": [
+    "node_modules"
   ]
 }
