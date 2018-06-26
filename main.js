@@ -1,5 +1,4 @@
 import _ from "lodash";
-import fs from "fs";
 import jsmediatags from "jsmediatags";
 import path from "path";
 import RxDB from "rxdb";
@@ -60,6 +59,9 @@ getLibrary().then(library => {
     }
   };
 });
+
+// https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 
 app.on("ready", () => {
   createGui();
