@@ -5,6 +5,8 @@ const audioCtx = new AudioContext();
 const source = audioCtx.createMediaElementSource(audio);
 source.connect(audioCtx.destination);
 
+audio.volume = .5;
+
 audio.ontimeupdate = function() {
   ipcRenderer.send("Player:timeupdate", {
     currentTime: this.currentTime,
