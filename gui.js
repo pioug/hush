@@ -295,11 +295,11 @@ window.addEventListener("drop", event => {
       return [
         ...res,
         ...glob
-          .sync(escapeSquareBrackets(x.path) + "/**/*.{mp3,m4a,flac,aac}")
+          .sync(escapeSquareBrackets(x.path) + "/**/*.{mp3,m4a,flac,aac,ogg}")
           .map(x => ({ src: x }))
       ];
     } else {
-      if ([".mp3", ".m4a", ".flac", ".aac"].includes(path.extname(x.path))) {
+      if ([".mp3", ".m4a", ".flac", ".aac", ".ogg"].includes(path.extname(x.path))) {
         return [...res, { src: x.path }];
       }
 
