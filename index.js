@@ -1,2 +1,2 @@
-require("babel-register");
+require("@babel/register")({ cwd: __dirname });
 require("./main");
