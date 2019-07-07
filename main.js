@@ -153,7 +153,14 @@ ipcMain.on("Main:playlistupdate", (event, { files = [] }) => {
 });
 
 function createGui() {
-  gui = new BrowserWindow({ width: 800, height: 600, ...guiBounds });
+  gui = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
+    width: 800,
+    height: 600,
+    ...guiBounds
+  });
 
   gui.loadURL(
     url.format({
@@ -178,7 +185,12 @@ function createGui() {
 }
 
 function createPlayer() {
-  player = new BrowserWindow({ show: false });
+  player = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
+    show: false
+  });
 
   player.loadURL(
     url.format({
