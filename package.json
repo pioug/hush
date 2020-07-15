@@ -23,7 +23,7 @@
     "fuse.js": "3.4.5",
     "glob": "7.1.4",
     "jsmediatags": "3.9.2",
-    "lodash": "4.17.11",
+    "lodash": "4.17.19",
     "pouchdb-adapter-node-websql": "7.0.0",
     "preact": "8.4.2",
     "rxdb": "8.2.1",
